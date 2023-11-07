@@ -1,10 +1,9 @@
-package tn.esprit.devops_project.services;
+package tn.esprit.devops_project.services.services;
 
 import com.github.springtestdbunit.DbUnitTestExecutionListener;
 import com.github.springtestdbunit.annotation.DatabaseSetup;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.InjectMocks;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ActiveProfiles;
@@ -14,12 +13,13 @@ import org.springframework.test.context.support.DependencyInjectionTestExecution
 import org.springframework.test.context.support.DirtiesContextTestExecutionListener;
 import org.springframework.test.context.transaction.TransactionalTestExecutionListener;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.util.CollectionUtils;
 import tn.esprit.devops_project.entities.Stock;
+import tn.esprit.devops_project.services.StockServiceImpl;
 
 import java.util.List;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 @ExtendWith(SpringExtension.class)
 @SpringBootTest
@@ -37,11 +37,15 @@ class StockServiceImplTest {
     @Test
     @DatabaseSetup("/data-set/stock-data.xml")
     void addStock() {
-        final Stock stock = new Stock();
-        stock.setTitle("Title");
-        this.stockService.addStock(stock);
-        assertEquals(this.stockService.retrieveAllStock().size(),2);
-        assertEquals(this.stockService.retrieveStock(2L).getTitle(),"Title");
+        Stock stock = new Stock();
+        stock.setTitle("titre1");
+        stockService.addStock(stock);
+
+        final List<Stock> allStocks = this.stockService.retrieveAllStock();
+        assertEquals(2, allStocks.size());
+
+        final Stock stock1 = this.stockService.retrieveStock(2L);
+        assertEquals("titre1", stock1.getTitle());
     }
 
     @Test
@@ -55,7 +59,15 @@ class StockServiceImplTest {
     @DatabaseSetup("/data-set/stock-data.xml")
     void retrieveAllStock() {
         final List<Stock> allStocks = this.stockService.retrieveAllStock();
-        assertEquals(allStocks.size(), 1);
+        assertEquals(1 ,allStocks.size() );
 
+    }
+
+    @Test
+    @DatabaseSetup("/data-set/stock-data.xml")
+    void retrieveStock_nullId() {
+        Exception exception = assertThrows(NullPointerException.class, () -> {
+            final Stock stock = this.stockService.retrieveStock(100L);
+        });
     }
 }
